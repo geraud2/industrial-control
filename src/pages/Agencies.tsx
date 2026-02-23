@@ -1,4 +1,4 @@
-import { Building2, MapPin, Phone, ChevronRight } from "lucide-react";
+import { Building2, MapPin, Phone, ChevronRight, Wrench, Calendar, ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,81 +30,214 @@ const Agencies = () => {
   const [selected, setSelected] = useState<number | null>(null);
   const agency = agencies.find((a) => a.id === selected);
 
+  // Vue détaillée d'une agence
   if (agency) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" onClick={() => setSelected(null)}>
-            ← Retour
+      <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
+        {/* En-tête avec retour */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setSelected(null)}
+            className="w-full sm:w-auto justify-start gap-2 -ml-2 sm:ml-0"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sm:hidden">Retour aux agences</span>
+            <span className="hidden sm:inline">Retour</span>
           </Button>
-          <h1 className="text-2xl font-bold text-foreground">{agency.name}</h1>
-          <Badge className={statusMap[agency.status as keyof typeof statusMap].className}>
-            {statusMap[agency.status as keyof typeof statusMap].label}
-          </Badge>
+          
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">
+              {agency.name}
+            </h1>
+            <Badge className={`${statusMap[agency.status as keyof typeof statusMap].className} w-fit`}>
+              {statusMap[agency.status as keyof typeof statusMap].label}
+            </Badge>
+          </div>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardContent className="p-5 space-y-2">
-              <p className="text-sm text-muted-foreground flex items-center gap-2"><MapPin className="h-4 w-4" /> {agency.address}</p>
-              <p className="text-sm text-muted-foreground flex items-center gap-2"><Phone className="h-4 w-4" /> {agency.phone}</p>
+        {/* Cartes d'information - Grille responsive */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {/* Adresse et contact */}
+          <Card className="col-span-1 sm:col-span-2 lg:col-span-1">
+            <CardContent className="p-4 sm:p-5 space-y-3">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                <p className="text-sm text-muted-foreground">{agency.address}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                <p className="text-sm text-muted-foreground">{agency.phone}</p>
+              </div>
             </CardContent>
           </Card>
+
+          {/* Équipements */}
           <Card>
-            <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Équipements</p>
-              <p className="text-3xl font-bold text-foreground">{agency.equipments}</p>
+            <CardContent className="p-4 sm:p-5">
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
+                <Wrench className="h-3.5 w-3.5" />
+                Équipements
+              </p>
+              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-1">
+                {agency.equipments}
+              </p>
             </CardContent>
           </Card>
+
+          {/* Dernière maintenance */}
           <Card>
-            <CardContent className="p-5">
-              <p className="text-sm text-muted-foreground">Dernière maintenance</p>
-              <p className="text-3xl font-bold text-foreground">{agency.lastMaintenance}</p>
+            <CardContent className="p-4 sm:p-5">
+              <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
+                <Calendar className="h-3.5 w-3.5" />
+                Dernière maintenance
+              </p>
+              <p className="text-2xl sm:text-3xl font-bold text-foreground mt-1">
+                {agency.lastMaintenance}
+              </p>
             </CardContent>
           </Card>
         </div>
 
+        {/* Liste des équipements */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Équipements du site</CardTitle>
+          <CardHeader className="pb-2 sm:pb-3 px-4 sm:px-6">
+            <CardTitle className="text-sm sm:text-base">
+              Équipements du site
+            </CardTitle>
           </CardHeader>
-          <CardContent>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-muted-foreground">
-                  <th className="pb-3 pr-4 font-medium">Nom</th>
-                  <th className="pb-3 pr-4 font-medium">Statut</th>
-                  <th className="pb-3 font-medium">Prochaine maintenance</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detailEquipments.map((eq) => (
-                  <tr key={eq.name} className="border-b last:border-0">
-                    <td className="py-3 pr-4 font-medium text-foreground">{eq.name}</td>
-                    <td className="py-3 pr-4">
-                      <Badge className={statusMap[eq.status as keyof typeof statusMap].className}>
-                        {statusMap[eq.status as keyof typeof statusMap].label}
-                      </Badge>
-                    </td>
-                    <td className="py-3 text-muted-foreground">{eq.nextMaintenance}</td>
+          <CardContent className="px-4 sm:px-6">
+            {/* Version mobile : cartes */}
+            <div className="block lg:hidden space-y-3">
+              {detailEquipments.map((eq) => (
+                <div key={eq.name} className="border rounded-lg p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-foreground text-sm">
+                      {eq.name}
+                    </span>
+                    <Badge className={statusMap[eq.status as keyof typeof statusMap].className}>
+                      {statusMap[eq.status as keyof typeof statusMap].label}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Prochaine maintenance</span>
+                    <span className="font-medium text-foreground">{eq.nextMaintenance}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Version desktop : tableau */}
+            <div className="hidden lg:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-muted-foreground">
+                    <th className="pb-3 pr-6 font-medium">Nom</th>
+                    <th className="pb-3 pr-6 font-medium">Statut</th>
+                    <th className="pb-3 font-medium">Prochaine maintenance</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {detailEquipments.map((eq) => (
+                    <tr key={eq.name} className="border-b last:border-0">
+                      <td className="py-3 pr-6 font-medium text-foreground whitespace-nowrap">
+                        {eq.name}
+                      </td>
+                      <td className="py-3 pr-6">
+                        <Badge className={statusMap[eq.status as keyof typeof statusMap].className}>
+                          {statusMap[eq.status as keyof typeof statusMap].label}
+                        </Badge>
+                      </td>
+                      <td className="py-3 text-muted-foreground whitespace-nowrap">
+                        {eq.nextMaintenance}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
+
+        {/* Bouton d'action rapide (mobile) */}
+        <div className="lg:hidden">
+          <Button className="w-full">
+            Planifier une maintenance
+          </Button>
+        </div>
       </div>
     );
   }
 
+  // Vue liste des agences
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Agences</h1>
-        <p className="text-sm text-muted-foreground">Gestion de vos sites et agences</p>
+    <div className="space-y-4 sm:space-y-6 p-3 sm:p-4 lg:p-6">
+      {/* En-tête */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground">
+            Agences
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Gestion de vos sites et agences
+          </p>
+        </div>
+        
+        {/* Bouton d'ajout (optionnel) */}
+        <Button size="sm" className="w-full sm:w-auto">
+          <Building2 className="h-4 w-4 mr-2" />
+          Nouvelle agence
+        </Button>
       </div>
 
-      <Card>
+      {/* Version mobile : cartes des agences */}
+      <div className="block lg:hidden space-y-3">
+        {agencies.map((a) => (
+          <Card 
+            key={a.id}
+            className="cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => setSelected(a.id)}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="font-medium text-foreground">{a.name}</span>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+              
+              <div className="space-y-2 mt-3">
+                <div className="flex items-start gap-2 text-xs">
+                  <MapPin className="h-3 w-3 text-muted-foreground shrink-0 mt-0.5" />
+                  <span className="text-muted-foreground">{a.address}</span>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wrench className="h-3 w-3 text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">
+                      {a.equipments} équipements
+                    </span>
+                  </div>
+                  <Badge className={statusMap[a.status as keyof typeof statusMap].className}>
+                    {statusMap[a.status as keyof typeof statusMap].label}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1 border-t">
+                  <Calendar className="h-3 w-3" />
+                  <span>Maintenance: {a.lastMaintenance}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Version desktop : tableau */}
+      <Card className="hidden lg:block">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -125,18 +258,24 @@ const Agencies = () => {
                     className="border-b last:border-0 hover:bg-muted/50 cursor-pointer transition-colors"
                     onClick={() => setSelected(a.id)}
                   >
-                    <td className="p-4 font-medium text-foreground flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      {a.name}
+                    <td className="p-4 font-medium text-foreground">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="whitespace-nowrap">{a.name}</span>
+                      </div>
                     </td>
-                    <td className="p-4 text-muted-foreground">{a.address}</td>
+                    <td className="p-4 text-muted-foreground whitespace-nowrap">
+                      {a.address}
+                    </td>
                     <td className="p-4 text-foreground">{a.equipments}</td>
                     <td className="p-4">
                       <Badge className={statusMap[a.status as keyof typeof statusMap].className}>
                         {statusMap[a.status as keyof typeof statusMap].label}
                       </Badge>
                     </td>
-                    <td className="p-4 text-muted-foreground">{a.lastMaintenance}</td>
+                    <td className="p-4 text-muted-foreground whitespace-nowrap">
+                      {a.lastMaintenance}
+                    </td>
                     <td className="p-4">
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </td>
@@ -147,6 +286,32 @@ const Agencies = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Résumé mobile */}
+      <div className="grid grid-cols-3 gap-2 lg:hidden">
+        <Card>
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-primary">{agencies.length}</p>
+            <p className="text-xs text-muted-foreground">Agences</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-warning">
+              {agencies.filter(a => a.status === 'warning').length}
+            </p>
+            <p className="text-xs text-muted-foreground">Maintenance</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-3 text-center">
+            <p className="text-lg font-bold text-destructive">
+              {agencies.filter(a => a.status === 'critical').length}
+            </p>
+            <p className="text-xs text-muted-foreground">Incidents</p>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
