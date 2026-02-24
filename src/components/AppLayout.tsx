@@ -39,7 +39,7 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, mobileIcon: Home },
   { to: "/agencies", label: "Agences", icon: Building2, mobileIcon: MapPin },
   { to: "/equipment", label: "Équipements", icon: HardDrive, mobileIcon: HardDrive },
-  { to: "/planning", label: "Planning", icon: CalendarDays, mobileIcon: Calendar },
+  { to: "/planning", label: "Maintenance", icon: CalendarDays, mobileIcon: Calendar },
   { to: "/interventions", label: "Interventions", icon: ClipboardList, mobileIcon: Wrench },
   { to: "/reports", label: "Rapports", icon: BarChart3, mobileIcon: FileText },
   { to: "/account", label: "Compte", icon: UserCircle, mobileIcon: Settings },
@@ -49,7 +49,7 @@ const navItems = [
 const mobileNavItems = [
   { to: "/dashboard", label: "Accueil", icon: Home },
   { to: "/agencies", label: "Sites", icon: MapPin },
-  { to: "/planning", label: "Planning", icon: Calendar },
+  { to: "/planning", label: "Maintenance", icon: Calendar },
   { to: "/interventions", label: "Actions", icon: Wrench },
   { to: "/account", label: "Profil", icon: UserCircle },
 ];
