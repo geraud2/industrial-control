@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Building2,
@@ -13,6 +13,13 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Bell,
+  Home,
+  MapPin,
+  Settings,
+  FileText,
+  Calendar,
+  Eye
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -25,29 +32,44 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 const navItems = [
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/agencies", label: "Agences", icon: Building2 },
-  { to: "/equipment", label: "Équipements", icon: HardDrive },
-  { to: "/planning", label: "Planning", icon: CalendarDays },
-  { to: "/interventions", label: "Interventions", icon: ClipboardList },
-  { to: "/reports", label: "Rapports", icon: BarChart3 },
-  { to: "/account", label: "Compte", icon: UserCircle },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, mobileIcon: Home },
+  { to: "/agencies", label: "Agences", icon: Building2, mobileIcon: MapPin },
+  { to: "/equipment", label: "Équipements", icon: HardDrive, mobileIcon: HardDrive },
+  { to: "/planning", label: "Planning", icon: CalendarDays, mobileIcon: Calendar },
+  { to: "/interventions", label: "Interventions", icon: ClipboardList, mobileIcon: Wrench },
+  { to: "/reports", label: "Rapports", icon: BarChart3, mobileIcon: FileText },
+  { to: "/account", label: "Compte", icon: UserCircle, mobileIcon: Settings },
+];
+
+// Items pour la navigation mobile (bottom bar) - on garde les plus importants
+const mobileNavItems = [
+  { to: "/dashboard", label: "Accueil", icon: Home },
+  { to: "/agencies", label: "Sites", icon: MapPin },
+  { to: "/planning", label: "Planning", icon: Calendar },
+  { to: "/interventions", label: "Actions", icon: Wrench },
+  { to: "/account", label: "Profil", icon: UserCircle },
 ];
 
 const AppLayout = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
-  // Détecter la taille de l'écran
+  // Détection de la taille d'écran
   useEffect(() => {
     const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 1024);
-      if (window.innerWidth >= 1024) {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
         setMobileOpen(false);
+        setShowMobileMenu(false);
       }
     };
 
@@ -58,7 +80,7 @@ const AppLayout = () => {
 
   // Empêcher le scroll du body quand le menu mobile est ouvert
   useEffect(() => {
-    if (mobileOpen) {
+    if (mobileOpen || showMobileMenu) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'unset';
@@ -66,118 +88,118 @@ const AppLayout = () => {
     return () => {
       document.body.style.overflow = 'unset';
     };
-  }, [mobileOpen]);
+  }, [mobileOpen, showMobileMenu]);
 
   const handleLogout = () => {
-    // Logique de déconnexion ici
     navigate("/login");
+  };
+
+  // Récupérer le titre de la page courante
+  const getCurrentPageTitle = () => {
+    const currentItem = navItems.find(item => 
+      location.pathname.includes(item.to)
+    );
+    return currentItem?.label || "Dashboard";
   };
 
   return (
     <div className="flex min-h-screen w-full bg-background">
-      {/* Mobile overlay avec animation */}
+      {/* Overlay mobile pour le menu latéral */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden animate-in fade-in duration-300"
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden animate-in fade-in duration-300"
           onClick={() => setMobileOpen(false)}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Overlay pour le menu mobile du bas (quand déplié) */}
+      {showMobileMenu && (
+        <div
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden animate-in fade-in duration-300"
+          onClick={() => setShowMobileMenu(false)}
+        />
+      )}
+
+      {/* Sidebar - cachée sur mobile */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-primary transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          mobileOpen 
-            ? "translate-x-0 shadow-2xl" 
-            : "-translate-x-full"
-        } ${
-          sidebarCollapsed && !isMobile ? "w-20" : "w-64"
+        className={`fixed inset-y-0 left-0 z-50 hidden md:flex flex-col bg-primary transition-all duration-300 ease-in-out ${
+          sidebarCollapsed ? "w-20" : "w-64"
         }`}
       >
         {/* Brand avec toggle pour desktop */}
         <div className={`flex h-16 items-center border-b border-sidebar-border px-4 ${
-          sidebarCollapsed && !isMobile ? "justify-center" : "gap-3"
+          sidebarCollapsed ? "justify-center" : "gap-2"
         }`}>
-          {(!sidebarCollapsed || isMobile) && (
-            <>
-              <div className="rounded-md bg-primary-foreground p-1.5 shrink-0">
-                <Wrench className="h-5 w-5 text-primary" />
-              </div>
-              <span className="text-lg font-bold text-primary-foreground truncate">
+          <div className="rounded-md bg-primary-foreground p-1.5 shrink-0">
+            <Wrench className="h-5 w-5 text-primary" />
+          </div>
+          
+          {!sidebarCollapsed && (
+            <div className="flex flex-col min-w-0">
+              <span className="text-sm lg:text-base font-bold text-primary-foreground leading-tight truncate">
                 1ER GEIR
               </span>
-            </>
-          )}
-          
-          {sidebarCollapsed && !isMobile && (
-            <div className="rounded-md bg-primary-foreground p-1.5">
-              <Wrench className="h-5 w-5 text-primary" />
+              <span className="flex items-center gap-1 text-[8px] lg:text-[10px] text-sidebar-foreground/70 uppercase tracking-wider">
+                <Eye className="h-2.5 w-2.5 lg:h-3 lg:w-3" /> 
+                <span className="truncate">Administration</span>
+              </span>
             </div>
           )}
 
-          {/* Bouton fermer mobile */}
-          <button
-            className={`text-sidebar-foreground lg:hidden ${
-              sidebarCollapsed && !isMobile ? "hidden" : "ml-auto"
-            }`}
-            onClick={() => setMobileOpen(false)}
-          >
-            <X className="h-5 w-5" />
-          </button>
+          {sidebarCollapsed && (
+            <div className="rounded-md bg-primary-foreground p-1.5">
+              <Eye className="h-5 w-5 text-primary" />
+            </div>
+          )}
 
           {/* Bouton toggle desktop */}
-          {!isMobile && (
-            <button
-              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="ml-auto text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors hidden lg:block"
-            >
-              {sidebarCollapsed ? (
-                <ChevronRight className="h-4 w-4" />
-              ) : (
-                <ChevronLeft className="h-4 w-4" />
-              )}
-            </button>
-          )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="ml-auto text-sidebar-foreground hover:text-sidebar-accent-foreground transition-colors hidden lg:block"
+          >
+            {sidebarCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </button>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation desktop */}
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4 scrollbar-thin scrollbar-thumb-sidebar-border">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
-              onClick={() => setMobileOpen(false)}
               className={({ isActive }) =>
                 `flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                  sidebarCollapsed && !isMobile ? "justify-center" : "gap-3"
+                  sidebarCollapsed ? "justify-center" : "gap-3"
                 } ${
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
                 }`
               }
-              title={sidebarCollapsed && !isMobile ? item.label : undefined}
+              title={sidebarCollapsed ? item.label : undefined}
             >
               <item.icon className="h-5 w-5 shrink-0" />
-              {(!sidebarCollapsed || isMobile) && (
-                <span className="truncate">{item.label}</span>
-              )}
-              
-              {/* Badge de notification (exemple) */}
-              {item.label === "Interventions" && (
-                <span className={`ml-auto bg-destructive text-destructive-foreground text-xs rounded-full px-1.5 py-0.5 ${
-                  sidebarCollapsed && !isMobile ? "hidden" : ""
-                }`}>
-                  3
-                </span>
+              {!sidebarCollapsed && (
+                <>
+                  <span className="truncate">{item.label}</span>
+                  {item.label === "Interventions" && (
+                    <Badge variant="destructive" className="ml-auto h-5 w-5 p-0 flex items-center justify-center text-xs">
+                      3
+                    </Badge>
+                  )}
+                </>
               )}
             </NavLink>
           ))}
         </nav>
 
-        {/* Footer avec infos utilisateur */}
+        {/* Footer desktop */}
         <div className="border-t border-sidebar-border p-3">
-          {(!sidebarCollapsed || isMobile) ? (
-            // Version détaillée
+          {!sidebarCollapsed ? (
             <div className="space-y-3">
               <div className="flex items-center gap-3 px-3 py-2">
                 <Avatar className="h-8 w-8 border-2 border-sidebar-accent">
@@ -203,7 +225,6 @@ const AppLayout = () => {
               </button>
             </div>
           ) : (
-            // Version réduite
             <button
               onClick={handleLogout}
               className="flex w-full items-center justify-center rounded-md p-2.5 text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground transition-colors"
@@ -216,66 +237,69 @@ const AppLayout = () => {
       </aside>
 
       {/* Main content */}
-      <div className="flex flex-1 flex-col min-w-0">
-        {/* Top bar */}
-        <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-4 sm:px-6">
-          {/* Menu mobile button */}
+      <div className="flex flex-1 flex-col min-w-0 md:ml-0 pb-16 md:pb-0">
+        {/* Top bar - visible uniquement sur desktop */}
+        <header className="sticky top-0 z-30 hidden md:flex h-16 items-center gap-4 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 px-4">
+          {/* Menu mobile button - caché sur desktop */}
           <button
-            className="text-foreground hover:text-primary transition-colors lg:hidden"
+            className="text-foreground hover:text-primary transition-colors md:hidden"
             onClick={() => setMobileOpen(true)}
           >
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Breadcrumb (optionnel) */}
-          <nav className="hidden sm:flex items-center text-sm text-muted-foreground">
-            <span>Accueil</span>
+          {/* Breadcrumb pour desktop */}
+          <nav className="hidden md:flex items-center text-sm text-muted-foreground flex-1">
+            <span>Administration</span>
             <ChevronRight className="h-3 w-3 mx-2" />
-            <span className="text-foreground font-medium">Dashboard</span>
+            <span className="text-foreground font-medium">{getCurrentPageTitle()}</span>
           </nav>
 
-          <div className="flex-1" />
-
           {/* Actions rapides */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             {/* Notifications */}
             <Button variant="ghost" size="icon" className="relative">
-              <div className="h-2 w-2 bg-destructive rounded-full absolute top-2 right-2" />
-              <span className="sr-only">Notifications</span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-bell"
-              >
-                <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-                <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-              </svg>
+              <Bell className="h-4 w-4" />
+              <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
+                3
+              </span>
             </Button>
 
-            {/* Profil dropdown */}
+            {/* Profil utilisateur - version desktop */}
+            <div className="hidden md:flex items-center gap-2 text-sm">
+              <Eye className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium uppercase tracking-wide text-primary">Admin</span>
+              <span className="text-border">|</span>
+              <Avatar className="h-7 w-7">
+                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                  AD
+                </AvatarFallback>
+              </Avatar>
+              <span className="font-medium text-foreground hidden lg:inline">Admin</span>
+            </div>
+
+            {/* Menu utilisateur mobile - bouton avec badge */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full md:hidden">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary text-primary-foreground">
+                    <AvatarFallback className="bg-primary/10 text-primary">
                       AD
                     </AvatarFallback>
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Mon compte</DropdownMenuLabel>
+                <DropdownMenuLabel>
+                  <div className="flex flex-col">
+                    <span>Admin</span>
+                    <span className="text-xs text-muted-foreground">admin@geir.com</span>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/account")}>
                   <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Profil</span>
+                  <span>Mon compte</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
@@ -286,17 +310,95 @@ const AppLayout = () => {
           </div>
         </header>
 
-        {/* Page content avec scroll */}
+        {/* Page content */}
         <main className="flex-1 overflow-auto">
-          <div className="container mx-auto p-4 sm:p-6 lg:p-8 max-w-7xl">
+          <div className="container mx-auto p-4 sm:p-6 max-w-7xl">
             <Outlet />
           </div>
         </main>
 
-        {/* Footer simple pour mobile */}
-        <footer className="border-t border-border bg-card py-3 px-4 text-center text-xs text-muted-foreground lg:hidden">
-          <p>© 2026 1ER GEIR MAINTENANCE</p>
-        </footer>
+        {/* Bottom Navigation Bar - Style application mobile */}
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg">
+          <div className="flex items-center justify-around h-16">
+            {mobileNavItems.map((item) => {
+              const isActive = location.pathname.includes(item.to);
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `flex flex-col items-center justify-center flex-1 h-full transition-colors ${
+                      isActive
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`
+                  }
+                >
+                  <div className="relative">
+                    <item.icon className="h-5 w-5" />
+                    {item.label === "Planning" && (
+                      <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-destructive" />
+                    )}
+                    {item.label === "Actions" && (
+                      <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[8px] text-primary-foreground flex items-center justify-center">
+                        3
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+                </NavLink>
+              );
+            })}
+            
+            {/* Bouton "Plus" pour ouvrir le menu complet */}
+            <button
+              onClick={() => setShowMobileMenu(true)}
+              className="flex flex-col items-center justify-center flex-1 h-full text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Menu className="h-5 w-5" />
+              <span className="text-[10px] mt-1 font-medium">Plus</span>
+            </button>
+          </div>
+        </nav>
+
+        {/* Menu mobile complet (quand on clique sur "Plus") */}
+        {showMobileMenu && (
+          <div className="md:hidden fixed inset-x-0 bottom-0 z-50 animate-in slide-in-from-bottom duration-300">
+            <div className="bg-card rounded-t-xl border border-border shadow-xl">
+              <div className="flex items-center justify-between p-4 border-b">
+                <h3 className="font-semibold text-foreground">Menu complet</h3>
+                <button
+                  onClick={() => setShowMobileMenu(false)}
+                  className="p-1 hover:bg-muted rounded-full"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+              <div className="p-4">
+                <div className="grid grid-cols-3 gap-4">
+                  {navItems.map((item) => {
+                    const isActive = location.pathname.includes(item.to);
+                    return (
+                      <NavLink
+                        key={item.to}
+                        to={item.to}
+                        onClick={() => setShowMobileMenu(false)}
+                        className={`flex flex-col items-center p-3 rounded-lg transition-colors ${
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:bg-muted"
+                        }`}
+                      >
+                        <item.icon className="h-6 w-6 mb-1" />
+                        <span className="text-xs text-center">{item.label}</span>
+                      </NavLink>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
